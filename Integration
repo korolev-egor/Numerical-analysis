@@ -1,0 +1,76 @@
+def hw4():
+    print('Приближенное вычисление интегралов по простейшим квадратурным формулам')
+    def l_rect():
+        return h * (mydict[xlist[0]] + common_sum)
+
+    def m_rect():
+        return h * sum([foo(a + (h / 2) + i * h) for i in range(m)])
+
+    def r_rect():
+        return h * (common_sum + mydict[xlist[-1]])
+
+    def trap():
+        return ((b - a) / (2 * m)) * (mydict[xlist[0]] + 2 * common_sum + mydict[xlist[-1]])
+
+    def simp():
+        h2 = (b - a) / (2 * m)
+        temp_xlist = [a + h2 * k for k in range(1, 2 * m, 2)]
+        temp_dict = {item: foo(item) for item in temp_xlist}
+        temp_dict.update(mydict)
+        temp_xlist += xlist
+        temp_xlist.sort()
+        return ((b - a) / (6 * m)) * (temp_dict[temp_xlist[0]]
+                                      + 4 * sum([temp_dict[temp_xlist[i]] for i in range(1, 2 * m, 2)])
+                                      + 2 * sum([temp_dict[temp_xlist[i]] for i in range(2, 2 * m - 1, 2)])
+                                      + temp_dict[temp_xlist[-1]])
+    while(True):
+        a = float(input("Введите A: "))
+        b = float(input("Введите B: "))
+        m = int(input("Введите число промежутков деления m: "))
+        h = (b - a) / m
+        w = 1
+        foo_type = int(input("Введите стемень интегрируемого многочлена ( 0, 1, 3, иначе функция по умолчанию): "))
+        if foo_type == 0:
+            foo = f0
+            foo_int = f0_int
+        elif foo_type == 1:
+            foo = f1
+            foo_int = f1_int
+        elif foo_type == 3:
+            foo = f3
+            foo_int = f3_int
+        else:
+            foo = f
+            foo_int = f_int
+        xlist = [a + k * h for k in range(m+1)]
+        mydict = {x: foo(x) for x in xlist}
+        # common_sum = sum((mydict[x] for x in xlist if xlist.index(x) % m))
+        common_sum = sum(mydict[x] for x in xlist) - mydict[xlist[0]] - mydict[xlist[-1]]
+        int_l = l_rect()
+        int_r = r_rect()
+        int_m = m_rect()
+        int_trap = trap()
+        int_simp = simp()
+        integral = foo_int(a, b)
+        err1 = 0.5 * h * (b - a) * 4.5 * e ** (4.5 * b)
+        err2 = (1 / 24) * (h ** 2) * (b - a) * 4.5 * 4.5 * e ** (4.5 * b)
+        err3 = err2 * 2
+        err4 = (1 / 2880) * (h ** 4) * (b - a) * (4.5 ** 4) * e ** (4.5 * b)
+        print("Значение интеграла на (a, b): ", integral)
+        print("Левые прямоугольники: {:.12f}\nАбсолютная фактическая погрешность: {}\n".format(int_l, abs(int_l - integral)))
+        if foo == f:
+            print("Теоретическая погрешность: {}".format(err1))
+        print("Средние прямоугольники: {:.12f}\nАбсолютная фактическая погрешность: {}\n".format(int_m, abs(int_m - integral)))
+        if foo == f:
+            print("Теоретическая погрешность: {}".format(err2))
+        print("Правые прямоугольники: {:.12f}\nАбсолютная фактическая погрешность: {}\n".format(int_r, abs(int_r - integral)))
+        if foo == f:
+            print("Теоретическая погрешность: {}".format(err1))
+        print("Метод трапеций: {:.12f}\nАбсолютная фактическая погрешность: {}\n".format(int_trap, abs(int_trap - integral)))
+        if foo == f:
+            print("Теоретическая погрешность: {}".format(err3))
+        print("Метод Симпсона: {:.12f}\nАбсолютная фактическая погрешность: {}\n".format(int_simp, abs(int_simp - integral)))
+        if foo == f:
+            print("Теоретическая погрешность: {}".format(err4))
+        if input("Новые значения? (y/n)") == 'n':
+            break
