@@ -1,0 +1,172 @@
+from math import e
+
+
+def f(x):
+    return e ** (-x) - x ** 2 / 2
+
+
+def problem1(left_end, right_end, function=f, epsilon=0.000001):
+    print('epsilon =', epsilon)
+    def root_separation():
+        list1 = []
+        segment_number = 1000
+        step = (right_end - left_end) / segment_number
+        # counter = 0
+        x1 = left_end
+        x2 = left_end + step
+        y1 = function(x1)
+        while x2 <= right_end:
+            y2 = function(x2)
+            if y1 * y2 <= 0:
+                # counter += 1
+                list1.append([x1, x2])
+                # print(x1, x2)
+            x1 = x2
+            x2 = x1 + step
+            y1 = y2
+        return list1
+
+    def bisection(seg_a, seg_b):
+        count = 0
+
+        while 2 * epsilon < seg_b - seg_a:
+            c = (seg_a + seg_b) / 2
+            if f(seg_a) * f(c) <= 0:
+                seg_b = c
+            else:
+                seg_a = c
+            count += 1
+        return (seg_a + seg_b) / 2
+
+    segment_list = root_separation()
+    roots = [bisection(endpoint[0], endpoint[1]) for endpoint in segment_list]
+    if not roots:
+        print("На отрезке", '[', left_end, ',', right_end, ']', 'корней нет')
+    return roots
+
+
+def problem2(domain, image, node, n):
+    new_domain = []
+    new_image = []
+
+    def abs_sort():
+        nonlocal new_domain
+        nonlocal new_image
+        my_list = [[abs(domain[i] - node), domain[i], image[i]] for i in range(len(domain))]
+        my_list.sort()
+        new_domain = [i[1] for i in my_list][:n+1]
+        new_image = [i[2] for i in my_list][:n+1]
+
+    def inner(j):
+        inner_result = 1
+        for i in range(j):
+            inner_result *= (node - new_domain[i]) / (new_domain[j] - new_domain[i])
+        for i in range(j + 1, n + 1):
+            inner_result *= (node - new_domain[i]) / (new_domain[j] - new_domain[i])
+        return inner_result
+    outer_result = 0
+    abs_sort()
+    # print(new_domain)
+    for j in range(n + 1):
+        outer_result += new_image[new_domain.index(new_domain[j])] * inner(j)
+    # print('|f(x) - L(x)| = ', abs(function(node)-outer_result))
+    return outer_result
+
+
+def problem311(domain, image, node, n):
+    return problem2(image, domain, node, n)
+
+
+def newf(x):
+    return problem2(domain, image, x, n) - node
+
+
+def trap(foo, a, b, m=10000):
+    xlist = [a + k * h for k in range(m + 1)]
+    mydict = {x: foo(x) for x in xlist}
+    common_sum = sum(mydict[x] for x in xlist) - mydict[xlist[0]] - mydict[xlist[-1]]
+    return ((b - a) / (2 * m)) * (mydict[xlist[0]] + 2 * common_sum + mydict[xlist[-1]])
+
+
+
+print("Задача обратного интерполирования 3.1")
+while(True):
+    a = float(input("Введите a: "))
+    b = float(input("Введите b: "))
+    m = int(input("Введите m: "))
+    epsilon = float(input("Введите погреншность epsilon: "))
+    h = (b - a) / m
+    domain = [a + i * h for i in range(m + 1)]
+    image = [f(x) for x in domain]
+    print("Таблица из", m+1, "значений функции f с шагом", h)
+    [print(round(element, 4), end=' ') for element in image]
+    print('\n')
+    node = float(input("Введите значение узла интерполяции: "))
+    while True:
+        n = int(input("Введите n: "))
+        if n <= m:
+            break
+        else:
+            print("n должно быть меньше или равно m")
+    new_answer1 = problem311(domain, image, node, n)
+    print("Ответ полученный способом №1:\n", "X =",
+          new_answer1, '\nмодуль невязки:', abs(f(new_answer1) - node))
+    new_answer2 = problem1(a, b, newf, epsilon) # второй ответ не зависит от n почему то хоть и строится по интерполяции???????????????????
+    print("Ответ полученный способом №2:")
+    [print("X =", k, "\nмодуль невязки =", abs(f(k)-node), end=' ') for k in new_answer2]
+    if input("\nВвести новые значения? (y/n)") == 'n':
+        break
+
+from math import e
+print('Интерполяция полиномомом Ньютона\nВариант 7')
+
+
+def f(x):
+    return e**(-x) - x*x/2
+
+
+# a = 0
+# b = 1
+# node = 0.65
+# n = 7
+# m = 15
+
+
+def abs_sort(domain, image, node):
+    my_list = [[abs(domain[i] - node), domain[i], image[i]] for i in range(len(domain))]
+    my_list.sort()
+    new_domain = [i[1] for i in my_list][:n + 1]
+    new_image = [i[2] for i in my_list][:n + 1]
+    return new_domain, new_image
+
+
+def newtone(x, nodes, values):
+    def div_dif(first_ind, last_ind):
+        if last_ind - first_ind == 1:
+            return (values[last_ind] - values[first_ind]) / (nodes[last_ind] - nodes[first_ind])
+        return (div_dif(first_ind+1, last_ind) - div_dif(first_ind, last_ind-1)) / (nodes[last_ind] - nodes[first_ind])
+    result = values[0]
+    def multip(i):
+        res = 1
+        for j in range(i+1):
+            res *= (x-nodes[j])
+        return res
+    for i in range(1, n+1):
+        result += div_dif(0, i) * multip(i)
+    return result
+while True:
+    a = float(input('Введите а: '))
+    b = float(input('Введите b: '))
+    m = int(input('Введите число значений в таблице минус один m: '))
+    n = int(input('Введите степень многочлена n, оно должно быть меньше или равно {}: '.format(m)))
+    h = (b-a)/m
+    nodes = [a + k * h for k in range(m+1)]
+    values = [f(node) for node in nodes]
+    print(nodes)
+    node = float(input('Введите точку интерполяции: '))
+    nodes, values = abs_sort(nodes, values, node)
+    newtone_res = newtone(node, nodes, values)
+    print('Значение полинома Ньютона в точке интерполяции: {}\nЗначение абсолютной фактической погрешности: {}\n{:%}'
+          .format(newtone_res, abs(newtone_res-f(node)),abs(newtone_res-f(node))/f(node)))
+    if input('Ввести новые параметры? (y/n): ') == 'n':
+        break
